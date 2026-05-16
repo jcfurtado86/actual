@@ -30,8 +30,18 @@ COPY packages/ ./packages/
 
 # Increase memory limit for the build process to 8GB
 ENV NODE_OPTIONS=--max_old_space_size=8192
+# Skip pulling latest translations (locale/ is already in source).
+ENV SKIP_TRANSLATIONS=true
 
-RUN yarn build:server
+# Build by calling vite directly per workspace. `yarn build:server` →
+# `./bin/package-browser` → `lage build:browser --to=@actual-app/web` fails in
+# this Docker context because lage's workspace discovery can't resolve the
+# scope at this stage. Manual ordering matches the implicit `^build` graph.
+RUN yarn workspace @actual-app/crdt build && \
+    yarn workspace @actual-app/core build && \
+    yarn workspace plugins-service build && \
+    yarn workspace @actual-app/web build:browser && \
+    yarn workspace @actual-app/sync-server build
 
 # Focus the workspaces in production mode (including @actual-app/web you just built)
 RUN yarn workspaces focus @actual-app/sync-server --production

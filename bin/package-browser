@@ -4,7 +4,7 @@ ROOT=`dirname $0`
 
 cd "$ROOT/.."
 
-SKIP_TRANSLATIONS=false
+SKIP_TRANSLATIONS=${SKIP_TRANSLATIONS:-false}
 while [[ $# -gt 0 ]]; do
   case "$1" in
     --skip-translations)

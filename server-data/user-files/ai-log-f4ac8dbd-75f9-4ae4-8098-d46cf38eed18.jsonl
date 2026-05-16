@@ -21,3 +21,6 @@
 {"id":"80061da6-b661-4664-ab2a-054382692565","timestamp":"2026-05-15T22:59:13.375Z","op":"categorize","status":"ok","summary":"6 tx → 3 sugestões","model":"gemini-2.5-flash","durationMs":24693,"tokens":{"input":1753,"output":292}}
 {"id":"c1ba9c30-1fb5-4279-b265-5d4eee7448f6","timestamp":"2026-05-16T03:02:12.216Z","op":"insights","status":"running","summary":"30d, 156 tx"}
 {"id":"03441c13-2a5a-4cd4-855e-ad62c754908e","timestamp":"2026-05-16T03:03:34.263Z","op":"insights","status":"ok","summary":"30d, 156 tx → 4190 chars","model":"gemini-2.5-flash","durationMs":22477,"tokens":{"input":9646,"output":1188}}
+{"id":"8b727ee3-fc79-4c12-b56a-d69ba964dc1c","timestamp":"2026-05-16T21:23:11.786Z","op":"chat","status":"ok","summary":"4 msg, \"oi\"","model":"gemini-2.5-flash","durationMs":1829,"tokens":{"input":15711,"output":12}}
+{"id":"ff9fb1e2-937f-4086-acc6-4e459d6c63e5","timestamp":"2026-05-16T21:23:22.957Z","op":"chat","status":"ok","summary":"2 msg, \"oi\"","model":"gemini-2.5-flash","durationMs":1405,"tokens":{"input":15371,"output":12}}
+{"id":"d267493d-7f8a-42f9-a52b-d730f416aa5d","timestamp":"2026-05-16T21:23:37.529Z","op":"chat","status":"ok","summary":"4 msg, \"que contas no mes atual parecem ser recorrentes?\"","model":"gemini-2.5-flash","durationMs":33613,"tokens":{"input":15396,"output":1439}}

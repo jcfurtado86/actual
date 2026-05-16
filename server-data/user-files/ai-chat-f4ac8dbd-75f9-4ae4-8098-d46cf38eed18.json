@@ -2,17 +2,32 @@
   "messages": [
     {
       "role": "user",
-      "content": "Onde gastei mais este mês?",
-      "timestamp": "2026-05-15T22:09:00.776Z"
+      "content": "oi",
+      "timestamp": "2026-05-16T21:23:22.957Z"
     },
     {
       "role": "assistant",
-      "content": "Olá! Com base nos seus gastos até 15 de maio de 2026, observei que a maior parte do seu dinheiro este mês ainda está sem categoria.\n\n<h3>Seus maiores gastos em maio de 2026:</h3>\n<ul>\n    <li>\n        <strong>Transações sem categoria: R$ 8.575,02</strong>\n        <p>Este é o maior valor de gasto do mês. Recomendo fortemente que você categorize essas transações para ter uma visão mais clara de onde seu dinheiro está indo. Isso te ajudará muito a identificar padrões e a fazer ajustes no seu orçamento.</p>\n    </li>\n    <li>\n        <strong>Bills (Contas Fixas): R$ 4.496,92</strong>\n        <p>Você gastou uma quantia significativa com contas, incluindo pagamentos para Banco do Brasil, Santander, Vivo e TIM.</p>\n    </li>\n    <li>\n        <strong>Online Shopping: R$ 703,56</strong>\n        <p>As compras online, principalmente na Amazon, representam uma parte considerável dos seus gastos categorizados.</p>\n    </li>\n    <li>\n        <strong>Sports: R$ 399,99</strong>\n        <p>Houve um gasto notável com produtos esportivos na SBF Comércio.</p>\n    </li>\n</ul>\n\nOrganizar as transações \"sem categoria\" é o próximo passo crucial para você ter total controle do seu orçamento! Se precisar de ajuda para entender como categorizá-las, me diga.",
-      "timestamp": "2026-05-15T22:09:25.995Z",
+      "content": "Olá! Como posso te ajudar com suas finanças hoje?",
+      "timestamp": "2026-05-16T21:23:24.362Z",
       "model": "gemini-2.5-flash",
       "tokens": {
-        "input": 21520,
-        "output": 330
+        "input": 15371,
+        "output": 12
+      }
+    },
+    {
+      "role": "user",
+      "content": "que contas no mes atual parecem ser recorrentes?",
+      "timestamp": "2026-05-16T21:23:37.529Z"
+    },
+    {
+      "role": "assistant",
+      "content": "Com base nas suas transações de maio de 2026 até o momento (16/05), e comparando com os meses anteriores, as seguintes contas parecem ser **recorrentes**:\n\n<ul>\n    <li>\n        <strong>Pagamento para Santander: R$ -2.989,74</strong> (ocorre em 12/05 como \"Bills\").\n        <ul>\n            <li>Em fevereiro, houve uma transação idêntica de R$ -2.989,74 para \"santander\" na categoria \"Investments\".</li>\n            <li>Em abril e março, houve pagamentos para \"santander\" com valores muito próximos (R$ -2.977,98 e R$ -2.974,46, respectivamente), em \"Investments\" ou \"Bills\".</li>\n            <li>**Observação:** A categoria e o valor podem variar ligeiramente, mas a recorrência com o Santander é clara.</li>\n        </ul>\n    </li>\n    <li>\n        <strong>Pagamento para Banco do Brasil: R$ -563,49</strong> (ocorre em 12/05 como \"Bills\").\n        <ul>\n            <li>Em abril, houve uma transação idêntica de R$ -563,49 para \"banco do brasil\" na categoria \"Savings\".</li>\n            <li>**Observação:** A categoria pode variar (\"Bills\" ou \"Savings\"), mas a transação para o Banco do Brasil com esse valor é consistente.</li>\n        </ul>\n    </li>\n    <li>\n        <strong>Conta VIVO S.A.: R$ -438,70</strong> (ocorre em 11/05 como \"Shopping\").\n        <ul>\n            <li>Este valor exato aparece para \"VIVO S.A.\" em abril (09/04) e março (09/03) na categoria \"Bills\".</li>\n            <li>**Observação:** Em maio, está categorizada como \"Shopping\", mas a recorrência com a Vivo e o valor fixo indicam ser uma conta.</li>\n        </ul>\n    </li>\n    <li>\n        <strong>Serviço Digital (PayPal): R$ -53,90</strong> (ocorre em 12/05 como \"Digital Services\" para PAYPAL DO BRASIL).\n        <ul>\n            <li>Este valor exato aparece para o mesmo payee em abril (12/04) como \"Digital Subscriptions\" e em março (12/03) como \"Digital Services\".</li>\n        </ul>\n    </li>\n    <li>\n        <strong>Serviço Google: R$ -14,99</strong> (ocorre em 11/05 como \"Digital Services\" para GOOGLE BRASIL INTERNET LTDA.).\n        <ul>\n            <li>Este valor exato aparece para o mesmo payee em abril (11/04) como \"Google Services\".</li>\n        </ul>\n    </li>\n    <li>\n        <strong>Compras/Serviços Amazon: R$ -513,60</strong> (ocorre em 08/05 como \"Shopping\" para AMAZON SERVICOS DE VAREJO DO BRASIL LTDA.).\n        <ul>\n            <li>Este valor exato aparece para o mesmo payee em abril (08/04) como \"Online Shopping\" e em março (09/03) como \"Shopping\".</li>\n        </ul>\n    </li>\n    <li>\n        <strong>Entretenimento: R$ -437,26</strong> (ocorre em 04/05 como \"Entertainment\").\n        <ul>\n            <li>Este valor exato aparece na categoria \"Entertainment\" em abril (01/04), março (02/03) e fevereiro (02/02).</li>\n        </ul>\n    </li>\n    <li>\n        <strong>Software & Games (Microsoft): R$ -60,00</strong> (ocorre em 04/05 para MICROSOFT DO BRASIL).\n        <ul>\n            <li>Este valor exato aparece para o mesmo payee na categoria \"Software & Games\" em abril (04/04) e março (04/03).</li>\n        </ul>\n    </li>\n    <li>\n        <strong>Esportes: R$ -360,00</strong> (ocorre em 04/05 como \"Sports\").\n        <ul>\n            <li>Este valor exato aparece na categoria \"Sports\" em abril (02/04) e fevereiro (26/02).</li>\n        </ul>\n    </li>\n    <li>\n        <strong>Conta TIM S A: R$ -149,99</strong> (ocorre em 02/05 como \"Bills\").\n        <ul>\n            <li>Este valor exato aparece para \"TIM S A\" na categoria \"Bills\" em abril (02/04), março (02/03) e fevereiro (02/03).</li>\n        </ul>\n    </li>\n    <li>\n        <strong>Assinatura OpenAI: Valor próximo a R$ -10X,XX</strong> (ocorre em 01/05 como \"Subscriptions\" para openai, com R$ -103,77).\n        <ul>\n            <li>Transações similares ocorreram em abril (01/04) com R$ -108,89 e em março (01/03) com R$ -107,11, ambos para \"openai\" e nas categorias \"Subscriptions\" ou \"Bills\".</li>\n            <li>**Observação:** O valor exato flutua ligeiramente, mas a recorrência com a OpenAI é clara.</li>\n        </ul>\n    </li>\n    <li>\n        <strong>Assinatura/Serviço Digital: R$ -550,00</strong> (ocorre em 13/05 como \"Digital Subscriptions\").\n        <ul>\n            <li>Um valor idêntico de R$ -550,00 aparece em abril (13/04) na categoria \"Software/Services\".</li>\n        </ul>\n    </li>\n    <li>\n        <strong>Despesa em Sports: R$ -17,00</strong> (ocorre múltiplas vezes em 05, 06 e 12/05).\n        <ul>\n            <li>Este valor também apareceu em março (03/03) em \"Sports\" e em \"Shopping\" (08/03), embora sem um payee fixo. Parece ser uma despesa frequente relacionada a esportes.</li>\n        </ul>\n    </li>\n</ul>\n\nÉ importante ficar de olho nessas transações, pois elas representam seus compromissos financeiros mensais ou regulares.",
+      "timestamp": "2026-05-16T21:24:11.141Z",
+      "model": "gemini-2.5-flash",
+      "tokens": {
+        "input": 15396,
+        "output": 1439
       }
     }
   ]

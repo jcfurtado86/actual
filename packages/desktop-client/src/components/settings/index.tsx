@@ -23,6 +23,7 @@ import { AiSettings } from './AiSettings';
 import { AuthSettings } from './AuthSettings';
 import { EncryptionSettings } from './Encryption';
 import { LanguageSettings } from './LanguageSettings';
+import { ThemeSettings } from './Themes';
 
 export function Settings() {
   const { t } = useTranslation();
@@ -94,6 +95,7 @@ export function Settings() {
             </Button>
           </View>
         )}
+        <ThemeSettings />
         <LanguageSettings />
         <AuthSettings />
         <EncryptionSettings />

@@ -19,13 +19,11 @@ import { Text } from '@actual-app/components/text';
 import { theme } from '@actual-app/components/theme';
 import { View } from '@actual-app/components/view';
 import { listen } from '@actual-app/core/platform/client/connection';
-import { isDevelopmentEnvironment } from '@actual-app/core/shared/environment';
 import * as Platform from '@actual-app/core/shared/platform';
 import { css } from '@emotion/css';
 
 import { sync } from '#app/appSlice';
 import { useGlobalPref } from '#hooks/useGlobalPref';
-import { useIsTestEnv } from '#hooks/useIsTestEnv';
 import { useMetadataPref } from '#hooks/useMetadataPref';
 import { useNavigate } from '#hooks/useNavigate';
 import { useSheetValue } from '#hooks/useSheetValue';
@@ -275,7 +273,6 @@ export function Titlebar({ style }: TitlebarProps) {
   const { isNarrowWidth } = useResponsive();
   const serverURL = useServerURL();
   const [floatingSidebar] = useGlobalPref('floatingSidebar');
-  const isTestEnv = useIsTestEnv();
 
   return isNarrowWidth ? null : (
     <View
@@ -341,7 +338,7 @@ export function Titlebar({ style }: TitlebarProps) {
       <View style={{ flex: 1 }} />
       <SpaceBetween gap={10}>
         <UncategorizedButton />
-        {isDevelopmentEnvironment() && !isTestEnv && <ThemeSelector />}
+        <ThemeSelector />
         <PrivacyButton />
         {serverURL ? <ServerSyncButton /> : null}
         <LoggedInUser />
