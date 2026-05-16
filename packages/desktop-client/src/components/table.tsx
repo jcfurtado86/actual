@@ -57,7 +57,20 @@ import {
   mergeConditionalPrivacyFilterProps,
 } from './PrivacyFilter';
 
-export const ROW_HEIGHT = 32;
+export const ROW_HEIGHT = 40;
+
+// width can be:
+//   number → fixed pixel width
+//   'flex'  → flex: 1
+//   'flexN' (e.g. 'flex2') → flex: N, allowing weighted flex columns
+function resolveCellWidth(width: number | string | undefined): CSSProperties {
+  if (typeof width === 'number') return { width };
+  if (width === 'flex') return { flex: 1, flexBasis: 0 };
+  if (typeof width === 'string' && /^flex\d+$/.test(width)) {
+    return { flex: Number(width.slice(4)), flexBasis: 0 };
+  }
+  return { width };
+}
 
 function fireBlur(onBlur, e) {
   if (document.hasFocus()) {
@@ -86,7 +99,7 @@ export const Field = forwardRef<HTMLDivElement, FieldProps>(function Field(
       innerRef={ref}
       {...props}
       style={{
-        ...(width === 'flex' ? { flex: 1, flexBasis: 0 } : { width }),
+        ...resolveCellWidth(width),
         borderTopWidth: 1,
         borderBottomWidth: 1,
         borderColor: theme.tableBorder,
@@ -187,8 +200,7 @@ export function Cell({
 
   useProperFocus(viewRef, focused !== undefined ? focused : exposed);
 
-  const widthStyle: CSSProperties =
-    width === 'flex' ? { flex: 1, flexBasis: 0 } : { width };
+  const widthStyle: CSSProperties = resolveCellWidth(width);
   const cellStyle: CSSProperties = {
     position: 'relative',
     textAlign: textAlign || 'left',

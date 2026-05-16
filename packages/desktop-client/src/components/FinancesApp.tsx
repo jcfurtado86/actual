@@ -1,6 +1,5 @@
 import React, { useEffect, useEffectEvent, useRef } from 'react';
 import type { ReactElement } from 'react';
-import { ErrorBoundary } from 'react-error-boundary';
 import { useTranslation } from 'react-i18next';
 import { Navigate, Route, Routes, useHref, useLocation } from 'react-router';
 
@@ -25,8 +24,10 @@ import { UserAccessPage } from './admin/UserAccess/UserAccessPage';
 import { BankSyncStatus } from './BankSyncStatus';
 import { CommandBar } from './CommandBar';
 import { EnableBankingCallback } from './EnableBankingCallback';
-import { FeatureErrorFallback } from './FeatureErrorFallback';
 import { GlobalKeys } from './GlobalKeys';
+import { AiLog } from './insights/AiLog';
+import { Chat } from './insights/Chat';
+import { Insights } from './insights/Insights';
 import { MobileBankSyncAccountEditPage } from './mobile/banksync/MobileBankSyncAccountEditPage';
 import { MobileNavTabs } from './mobile/MobileNavTabs';
 import { TransactionEdit } from './mobile/transactions/TransactionEdit';
@@ -39,7 +40,6 @@ import { UserDirectoryPage } from './responsive/wide';
 import { useMultiuserEnabled } from './ServerContext';
 import { Settings } from './settings';
 import { FloatableSidebar } from './sidebar';
-import { ManageTagsPage } from './tags/ManageTagsPage';
 import { Titlebar } from './Titlebar';
 
 function NarrowNotSupported({
@@ -90,7 +90,6 @@ export function FinancesApp() {
   const { isNarrowWidth } = useResponsive();
   useMetaThemeColor(isNarrowWidth ? theme.mobileViewTheme : undefined);
 
-  const location = useLocation();
   const dispatch = useDispatch();
   const { t } = useTranslation();
 
@@ -198,6 +197,12 @@ export function FinancesApp() {
       <RouterBehaviors />
       <GlobalKeys />
       <CommandBar />
+      {!isNarrowWidth && (
+        <>
+          <Chat />
+          <AiLog />
+        </>
+      )}
       <View
         style={{
           flexDirection: 'row',
@@ -249,11 +254,7 @@ export function FinancesApp() {
                     element={
                       isAccountsFetching || !accounts ? (
                         <LoadingIndicator />
-                      ) : accounts.length > 0 ? (
-                        <Navigate to="/budget" replace />
                       ) : (
-                        // If there are no accounts, we want to redirect the user to
-                        // the All Accounts screen which will prompt them to add an account
                         <Navigate to="/accounts" replace />
                       )
                     }
@@ -261,10 +262,7 @@ export function FinancesApp() {
 
                   <Route path="/reports/*" element={<Reports />} />
 
-                  <Route
-                    path="/budget"
-                    element={<NarrowAlternate name="Budget" />}
-                  />
+                  <Route path="/insights" element={<Insights />} />
 
                   <Route
                     path="/schedules"
@@ -280,40 +278,6 @@ export function FinancesApp() {
                   />
 
                   <Route
-                    path="/payees"
-                    element={<NarrowAlternate name="Payees" />}
-                  />
-                  <Route
-                    path="/payees/:id"
-                    element={
-                      <WideNotSupported>
-                        <NarrowAlternate name="PayeeEdit" />
-                      </WideNotSupported>
-                    }
-                  />
-                  <Route
-                    path="/rules"
-                    element={
-                      <ErrorBoundary
-                        FallbackComponent={FeatureErrorFallback}
-                        resetKeys={[location.pathname]}
-                      >
-                        <NarrowAlternate name="Rules" />
-                      </ErrorBoundary>
-                    }
-                  />
-                  <Route
-                    path="/rules/:id"
-                    element={
-                      <ErrorBoundary
-                        FallbackComponent={FeatureErrorFallback}
-                        resetKeys={[location.pathname]}
-                      >
-                        <NarrowAlternate name="RuleEdit" />
-                      </ErrorBoundary>
-                    }
-                  />
-                  <Route
                     path="/bank-sync"
                     element={<NarrowAlternate name="BankSync" />}
                   />
@@ -325,7 +289,6 @@ export function FinancesApp() {
                       </WideNotSupported>
                     }
                   />
-                  <Route path="/tags" element={<ManageTagsPage />} />
                   <Route path="/settings" element={<Settings />} />
 
                   <Route
@@ -388,26 +351,24 @@ export function FinancesApp() {
                       }
                     />
                   )}
-                  {/* redirect all other traffic to the budget page */}
+                  {/* redirect all other traffic to the accounts page */}
                   <Route
                     path="/*"
-                    element={<Navigate to="/budget" replace />}
+                    element={<Navigate to="/accounts" replace />}
                   />
                 </Routes>
               </View>
 
               <Routes>
-                <Route path="/budget" element={<MobileNavTabs />} />
                 <Route path="/accounts" element={<MobileNavTabs />} />
                 <Route path="/settings" element={<MobileNavTabs />} />
+                <Route path="/bank-sync" element={<MobileNavTabs />} />
                 <Route path="/reports" element={<MobileNavTabs />} />
                 <Route
                   path="/reports/:dashboardId"
                   element={<MobileNavTabs />}
                 />
-                <Route path="/bank-sync" element={<MobileNavTabs />} />
-                <Route path="/rules" element={<MobileNavTabs />} />
-                <Route path="/payees" element={<MobileNavTabs />} />
+                <Route path="/insights" element={<MobileNavTabs />} />
                 <Route path="/schedules" element={<MobileNavTabs />} />
                 <Route path="*" element={null} />
               </Routes>

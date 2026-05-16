@@ -10,6 +10,7 @@ import type { Handlers } from '#types/handlers';
 
 import { app as accountsApp } from './accounts/app';
 import { app as adminApp } from './admin/app';
+import { app as aiApp } from './ai/app';
 import { installAPI } from './api';
 import { aqlQuery } from './aql';
 import { app as authApp } from './auth/app';
@@ -139,6 +140,7 @@ app.combine(
   reportsApp,
   rulesApp,
   adminApp,
+  aiApp,
   transactionsApp,
   accountsApp,
   payeesApp,

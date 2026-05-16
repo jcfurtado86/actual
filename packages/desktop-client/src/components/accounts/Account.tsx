@@ -86,6 +86,7 @@ import { updateNewTransactions } from '#transactions/transactionsSlice';
 
 import { AccountEmptyMessage } from './AccountEmptyMessage';
 import { AccountHeader } from './Header';
+import { InvoiceTabs } from './InvoiceTabs';
 
 type ConditionEntity = Partial<RuleConditionEntity> | TransactionFilterEntity;
 
@@ -280,6 +281,8 @@ type AccountInternalState = {
     prevAscDesc?: 'asc' | 'desc' | undefined;
   } | null;
   filteredAmount: null | number;
+  invoiceTabTotal: null | number;
+  futureTransactions: null | TransactionEntity[];
 };
 
 export type TableRef = RefObject<{
@@ -323,6 +326,8 @@ class AccountInternal extends PureComponent<
       isAdding: false,
       sort: null,
       filteredAmount: null,
+      invoiceTabTotal: null,
+      futureTransactions: null,
     };
   }
 
@@ -478,8 +483,47 @@ class AccountInternal extends PureComponent<
 
     this.paged = pagedQuery(query.select('*'), {
       onData: async (groupedData, prevData) => {
-        const data = ungroupTransactions([...groupedData]);
+        let data = ungroupTransactions([...groupedData]);
         const firstLoad = prevData == null;
+
+        // When a fatura tab is selected, group rows by schedule type
+        // (parceladas first, then recorrentes, then others) so the user
+        // sees them visually clustered. Date order preserved within group.
+        if (this.state.invoiceTabTotal != null) {
+          const classify = (t: {
+            notes?: string | null;
+            schedule?: string | null;
+          }) => {
+            // Same heuristic as InvoiceTabs.isParceladaText — must not
+            // match dates like "22/06".
+            if (t.notes) {
+              const m = /\b(\d{1,2})\s*\/\s*(\d{1,2})\b/.exec(t.notes);
+              if (m) {
+                const x = Number(m[1]);
+                const y = Number(m[2]);
+                if (
+                  Number.isFinite(x) &&
+                  Number.isFinite(y) &&
+                  x >= 1 &&
+                  y >= 2 &&
+                  y <= 24 &&
+                  x <= y &&
+                  (y > 12 || /\bparc/i.test(t.notes))
+                ) {
+                  return 0;
+                }
+              }
+            }
+            if (t.schedule) return 1;
+            return 2;
+          };
+          data = [...data].sort((a, b) => {
+            const ca = classify(a);
+            const cb = classify(b);
+            if (ca !== cb) return ca - cb;
+            return (b.date || '').localeCompare(a.date || '');
+          });
+        }
 
         if (firstLoad) {
           this.table.current?.setRowAnimation(false);
@@ -734,6 +778,85 @@ class AccountInternal extends PureComponent<
           notification: {
             type: 'error',
             message: 'Failed to apply rules to transactions',
+          },
+        }),
+      );
+    } finally {
+      this.setState({ workingHard: false });
+    }
+  };
+
+  onInvoiceTotalChange = (total: number | null) => {
+    // Stored separately from filteredAmount because applyFilters/fetch will
+    // overwrite filteredAmount when the underlying query refetches. The
+    // render uses invoiceTabTotal as override when present.
+    this.setState({ invoiceTabTotal: total });
+  };
+
+  onFutureTransactionsChange = (txs: TransactionEntity[] | null) => {
+    // When a future invoice tab is selected, InvoiceTabs computes synthetic
+    // transactions (projected parcelas + recurring schedules). We render
+    // these via the SAME TransactionsTable used for real transactions.
+    this.setState({ futureTransactions: txs });
+  };
+
+  onInvoiceRange = (from: string | null, to: string | null) => {
+    // When picking a fatura, drop any pre-existing date filters and apply a
+    // simple [gte, lte] range; otherwise just drop the date filters.
+    const nonDate = this.state.filterConditions.filter(
+      c => (c as { field?: string }).field !== 'date',
+    );
+    if (from && to) {
+      const dateConditions: ConditionEntity[] = [
+        { field: 'date', op: 'gte', value: from } as ConditionEntity,
+        { field: 'date', op: 'lte', value: to } as ConditionEntity,
+      ];
+      const next = [...nonDate, ...dateConditions];
+      this.setState({ filterConditions: next });
+      void this.applyFilters(next);
+    } else {
+      this.setState({ filterConditions: nonDate });
+      void this.applyFilters(nonDate);
+    }
+  };
+
+  onCategorizeWithAi = async (ids: string[]) => {
+    try {
+      this.setState({ workingHard: true });
+      const res = (await send('ai-categorize-transactions', { ids })) as
+        | {
+            updated: number;
+            skipped: number;
+            tokens?: { input: number; output: number } | null;
+          }
+        | { error: string };
+      if ('error' in res) {
+        this.props.dispatch(
+          addNotification({
+            notification: {
+              type: 'error',
+              message: `IA falhou ao categorizar: ${res.error}`,
+            },
+          }),
+        );
+      } else {
+        this.props.dispatch(
+          addNotification({
+            notification: {
+              type: 'message',
+              message: `IA categorizou ${res.updated} transação(ões)${res.skipped ? `; ${res.skipped} sem sugestão` : ''}.`,
+            },
+          }),
+        );
+      }
+      this.fetchTransactions();
+    } catch (error) {
+      console.error('AI categorize failed:', error);
+      this.props.dispatch(
+        addNotification({
+          notification: {
+            type: 'error',
+            message: 'Falha ao chamar IA.',
           },
         }),
       );
@@ -1719,7 +1842,7 @@ class AccountInternal extends PureComponent<
       categoryId,
     } = this.props;
     const {
-      transactions,
+      transactions: realTransactions,
       loading,
       workingHard,
       filterId,
@@ -1730,7 +1853,14 @@ class AccountInternal extends PureComponent<
       showCleared,
       showReconciled,
       filteredAmount,
+      invoiceTabTotal,
+      futureTransactions,
     } = this.state;
+
+    // When a future invoice tab is active, swap the real transactions with
+    // the projected synthetic ones so TransactionsTable renders them in the
+    // exact same layout as real rows.
+    const transactions = futureTransactions ?? realTransactions;
 
     const account = accounts.find(account => account.id === accountId);
     const accountName = this.getAccountTitle(account, accountId);
@@ -1801,6 +1931,7 @@ class AccountInternal extends PureComponent<
                 balanceQuery={balanceQuery}
                 canCalculateBalance={this?.canCalculateBalance ?? undefined}
                 filteredAmount={filteredAmount}
+                forcedBalance={invoiceTabTotal}
                 isFiltered={transactionsFiltered ?? false}
                 isSorted={this.state.sort !== null}
                 reconcileAmount={reconcileAmount}
@@ -1825,6 +1956,7 @@ class AccountInternal extends PureComponent<
                 onBatchDelete={this.onBatchDelete}
                 onBatchDuplicate={this.onBatchDuplicate}
                 onRunRules={this.onRunRules}
+                onCategorizeWithAi={this.onCategorizeWithAi}
                 onBatchEdit={this.onBatchEdit}
                 onBatchLinkSchedule={this.onBatchLinkSchedule}
                 onBatchUnlinkSchedule={this.onBatchUnlinkSchedule}
@@ -1842,12 +1974,25 @@ class AccountInternal extends PureComponent<
                 onMergeTransactions={this.onMergeTransactions}
               />
 
+              {accountId &&
+                accountId !== 'offbudget' &&
+                accountId !== 'onbudget' &&
+                accountId !== 'uncategorized' && (
+                  <InvoiceTabs
+                    accountId={accountId}
+                    onSelectRange={this.onInvoiceRange}
+                    onActiveTotalChange={this.onInvoiceTotalChange}
+                    onFutureTransactionsChange={this.onFutureTransactionsChange}
+                  />
+                )}
+
               <View style={{ flex: 1 }}>
                 <TransactionList
                   headerContent={undefined}
                   // @ts-expect-error - fix me
                   tableRef={this.table}
                   account={account}
+                  onRefresh={this.refetchTransactions}
                   transactions={transactions}
                   allTransactions={allTransactions}
                   loadMoreTransactions={() =>

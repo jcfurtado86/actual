@@ -30,6 +30,7 @@ import { DropHighlight, useDraggable, useDroppable } from '#components/sort';
 import type { OnDragChangeCallback, OnDropCallback } from '#components/sort';
 import { CellValue } from '#components/spreadsheet/CellValue';
 import { useContextMenu } from '#hooks/useContextMenu';
+import { useCurrentInvoiceTotal } from '#hooks/useCurrentInvoiceTotal';
 import { useDragRef } from '#hooks/useDragRef';
 import { useIsTestEnv } from '#hooks/useIsTestEnv';
 import { useNotes } from '#hooks/useNotes';
@@ -130,7 +131,25 @@ export function Account<FieldName extends SheetFields<'account'>>({
   const reopenAccount = useReopenAccountMutation();
   const updateAccount = useUpdateAccountMutation();
 
-  const balanceCell = <CellValue binding={query} type="financial" />;
+  const invoiceTotal = useCurrentInvoiceTotal(account?.id);
+
+  const balanceCell =
+    invoiceTotal.total != null ? (
+      <Text
+        style={{
+          fontFeatureSettings: '"tnum"',
+          whiteSpace: 'nowrap',
+          color: invoiceTotal.total < 0 ? theme.errorText : 'inherit',
+        }}
+      >
+        {(invoiceTotal.total / 100).toLocaleString('pt-BR', {
+          style: 'currency',
+          currency: 'BRL',
+        })}
+      </Text>
+    ) : (
+      <CellValue binding={query} type="financial" />
+    );
 
   const accountRow = (
     <View

@@ -257,6 +257,7 @@ type TransactionListProps = Pick<
   | 'onCreatePayee'
   | 'onCreateRule'
   | 'onMakeAsNonSplitTransactions'
+  | 'onRefresh'
   | 'onSort'
   | 'onScheduleAction'
   | 'payees'
@@ -325,6 +326,7 @@ export function TransactionList({
   onCreateRule,
   onScheduleAction,
   onMakeAsNonSplitTransactions,
+  onRefresh,
 }: TransactionListProps) {
   const { t } = useTranslation();
 
@@ -770,6 +772,7 @@ export function TransactionList({
         onCreateRule={onCreateRule}
         onScheduleAction={onScheduleAction}
         onMakeAsNonSplitTransactions={onMakeAsNonSplitTransactions}
+        onRefresh={onRefresh}
         showSelection={showSelection}
         allowSplitTransaction={allowSplitTransaction}
       />

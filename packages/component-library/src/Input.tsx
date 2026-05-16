@@ -18,8 +18,8 @@ export const baseInputStyle = {
   backgroundColor: theme.tableBackground,
   color: theme.formInputText,
   margin: 0,
-  padding: 5,
-  borderRadius: 4,
+  padding: '8px 12px',
+  borderRadius: 10,
   border: '1px solid ' + theme.formInputBorder,
 };
 

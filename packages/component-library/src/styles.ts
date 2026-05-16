@@ -9,14 +9,16 @@ export type CSSProperties = Record<string, any>;
 const MOBILE_MIN_HEIGHT = 40;
 
 const shadowLarge = {
-  boxShadow: '0 15px 30px 0 rgba(0,0,0,0.11), 0 5px 15px 0 rgba(0,0,0,0.08)',
+  boxShadow:
+    '0 18px 38px 0 rgba(15, 23, 42, 0.10), 0 6px 14px 0 rgba(15, 23, 42, 0.06)',
 };
 
 export const styles: CSSProperties = {
   incomeHeaderHeight: 70,
-  cardShadow: '0 1px 3px rgba(0,0,0,0.12), 0 1px 2px rgba(0,0,0,0.24)',
+  cardShadow:
+    '0 8px 24px -8px rgba(15, 23, 42, 0.15), 0 2px 6px rgba(15, 23, 42, 0.06)',
   monthRightPadding: 5,
-  menuBorderRadius: 4,
+  menuBorderRadius: 12,
   mobileMinHeight: MOBILE_MIN_HEIGHT,
   mobileMenuItem: {
     fontSize: 17,
@@ -36,23 +38,24 @@ export const styles: CSSProperties = {
     fontWeight: 700,
   },
   veryLargeText: {
-    fontSize: 30,
+    fontSize: 34,
     fontWeight: 600,
+    letterSpacing: -0.4,
   },
   largeText: {
-    fontSize: 20,
+    fontSize: 22,
     fontWeight: 700,
-    letterSpacing: 0.5,
+    letterSpacing: 0.2,
   },
   mediumText: {
-    fontSize: 15,
+    fontSize: 16,
     fontWeight: 500,
   },
   smallText: {
-    fontSize: 13,
+    fontSize: 14,
   },
   verySmallText: {
-    fontSize: 12,
+    fontSize: 13,
   },
   tinyText: {
     fontSize: 10,
@@ -68,11 +71,11 @@ export const styles: CSSProperties = {
     },
   },
   pageContent: {
-    paddingLeft: 2,
-    paddingRight: 2,
+    paddingLeft: 12,
+    paddingRight: 12,
     [`@media (min-width: ${tokens.breakpoint_small})`]: {
-      paddingLeft: 20,
-      paddingRight: 20,
+      paddingLeft: 32,
+      paddingRight: 32,
     },
   },
   settingsPageContent: {
@@ -129,10 +132,10 @@ export const styles: CSSProperties = {
     };
   },
   tooltip: {
-    padding: 5,
+    padding: 8,
     ...shadowLarge,
-    borderWidth: 2,
-    borderRadius: 4,
+    borderWidth: 1,
+    borderRadius: 10,
     borderStyle: 'solid',
     borderColor: theme.tooltipBorder,
     backgroundColor: theme.tooltipBackground,
@@ -152,20 +155,19 @@ export const styles: CSSProperties = {
   editorPill: {
     color: theme.pillText,
     backgroundColor: theme.pillBackground,
-    borderRadius: 4,
-    padding: '3px 5px',
+    borderRadius: 999,
+    padding: '4px 12px',
   },
   mobileListItem: {
     borderBottom: `1px solid ${theme.tableBorder}`,
     backgroundColor: theme.tableBackground,
-    padding: 16,
+    padding: 20,
     cursor: 'pointer',
   },
   tableContainer: {
     flex: 1,
     border: '1px solid ' + theme.tableBorder,
-    borderTopLeftRadius: 6,
-    borderTopRightRadius: 6,
+    borderRadius: 14,
     overflow: 'hidden',
   },
 };

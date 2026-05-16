@@ -19,8 +19,6 @@ import * as bindings from '#spreadsheet/bindings';
 import { Account } from './Account';
 import { SecondaryItem } from './SecondaryItem';
 
-const fontWeight = 600;
-
 export function Accounts() {
   const { t } = useTranslation();
   const [isDragging, setIsDragging] = useState(false);
@@ -91,30 +89,6 @@ export function Accounts() {
       />
 
       <View style={{ overflow: 'auto' }}>
-        <Account
-          name={t('All accounts')}
-          to="/accounts"
-          query={bindings.allAccountBalance()}
-          style={{ fontWeight, marginTop: 15 }}
-          isExactPathMatch
-          balanceTestId="sidebar-all-accounts-balance"
-        />
-
-        {onBudgetAccounts.length > 0 && (
-          <Account
-            name={t('On budget')}
-            to="/accounts/onbudget"
-            query={bindings.onBudgetAccountBalance()}
-            style={{
-              fontWeight,
-              marginTop: 13,
-              marginBottom: 5,
-            }}
-            titleAccount
-            balanceTestId="sidebar-on-budget-balance"
-          />
-        )}
-
         {onBudgetAccounts.map((account, i) => (
           <Account
             key={account.id}
@@ -129,23 +103,9 @@ export function Accounts() {
             onDragChange={onDragChange}
             onDrop={onReorder}
             outerStyle={makeDropPadding(i)}
+            style={i === 0 ? { marginTop: 15 } : undefined}
           />
         ))}
-
-        {offbudgetAccounts.length > 0 && (
-          <Account
-            name={t('Off budget')}
-            to="/accounts/offbudget"
-            query={bindings.offBudgetAccountBalance()}
-            style={{
-              fontWeight,
-              marginTop: 13,
-              marginBottom: 5,
-            }}
-            titleAccount
-            balanceTestId="sidebar-off-budget-balance"
-          />
-        )}
 
         {offbudgetAccounts.map((account, i) => (
           <Account

@@ -90,9 +90,9 @@ const _getBorder = (
 const _getPadding = (variant: ButtonVariant): string => {
   switch (variant) {
     case 'bare':
-      return '5px';
+      return '6px 8px';
     default:
-      return '5px 10px';
+      return '8px 16px';
   }
 };
 
@@ -148,7 +148,7 @@ export const Button = forwardRef<HTMLButtonElement, ButtonProps>(
           margin: 0,
           overflow: 'hidden',
           display: 'flex',
-          borderRadius: 4,
+          borderRadius: 10,
           backgroundColor: backgroundColor[variantWithDisabled],
           border: _getBorder(variant, variantWithDisabled),
           color: textColor[variantWithDisabled],

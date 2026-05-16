@@ -11,10 +11,7 @@ import {
   SvgDotsHorizontalTriple,
 } from '@actual-app/components/icons/v1';
 import {
-  SvgArrowsExpand3,
-  SvgArrowsShrink3,
   SvgDownloadThickBottom,
-  SvgLockClosed,
   SvgPencil1,
 } from '@actual-app/components/icons/v2';
 import { InitialFocus } from '@actual-app/components/initial-focus';
@@ -24,16 +21,13 @@ import { Popover } from '@actual-app/components/popover';
 import { SpaceBetween } from '@actual-app/components/space-between';
 import { styles } from '@actual-app/components/styles';
 import { theme } from '@actual-app/components/theme';
-import { Tooltip } from '@actual-app/components/tooltip';
 import { View } from '@actual-app/components/view';
-import { tsToRelativeTime } from '@actual-app/core/shared/util';
 import type {
   AccountEntity,
   RuleConditionEntity,
   TransactionEntity,
   TransactionFilterEntity,
 } from '@actual-app/core/types/models';
-import { format as formatDate } from 'date-fns';
 
 import { AnimatedRefresh } from '#components/AnimatedRefresh';
 import { Search } from '#components/common/Search';
@@ -42,8 +36,6 @@ import { FiltersStack } from '#components/filters/FiltersStack';
 import type { SavedFilter } from '#components/filters/SavedFilterMenuButton';
 import { NotesButton } from '#components/NotesButton';
 import { SelectedTransactionsButton } from '#components/transactions/SelectedTransactionsButton';
-import { useDateFormat } from '#hooks/useDateFormat';
-import { useLocale } from '#hooks/useLocale';
 import { useLocalPref } from '#hooks/useLocalPref';
 import { useSplitsExpanded } from '#hooks/useSplitsExpanded';
 import { useSyncedPref } from '#hooks/useSyncedPref';
@@ -77,6 +69,7 @@ type AccountHeaderProps = {
   canCalculateBalance?: () => boolean;
   isFiltered: boolean;
   filteredAmount?: number | null;
+  forcedBalance?: number | null;
   isSorted: boolean;
   search: string;
   filterConditions: RuleConditionEntity[];
@@ -101,6 +94,9 @@ type AccountHeaderProps = {
   onReconcile: ComponentProps<typeof ReconcileMenu>['onReconcile'];
   onBatchEdit: ComponentProps<typeof SelectedTransactionsButton>['onEdit'];
   onRunRules: ComponentProps<typeof SelectedTransactionsButton>['onRunRules'];
+  onCategorizeWithAi: ComponentProps<
+    typeof SelectedTransactionsButton
+  >['onCategorizeWithAi'];
   onBatchDelete: ComponentProps<typeof SelectedTransactionsButton>['onDelete'];
   onBatchDuplicate: ComponentProps<
     typeof SelectedTransactionsButton
@@ -184,6 +180,8 @@ export function AccountHeader({
   onScheduleAction,
   onSetTransfer,
   onRunRules,
+  onCategorizeWithAi,
+  forcedBalance,
   onMakeAsSplitTransaction,
   onMakeAsNonSplitTransactions,
   onMergeTransactions,
@@ -202,9 +200,6 @@ export function AccountHeader({
     `show-account-${accountId}-net-worth-chart`,
   );
   const showNetWorthChart = showNetWorthChartPref === 'true';
-
-  const dateFormat = useDateFormat() || 'MM/dd/yyyy';
-  const locale = useLocale();
 
   let canSync = !!(account?.account_id && isUsingServer);
   if (!account) {
@@ -324,6 +319,7 @@ export function AccountHeader({
               account={account}
               isFiltered={isFiltered}
               filteredAmount={filteredAmount}
+              forcedBalance={forcedBalance}
             />
           </View>
 
@@ -378,14 +374,15 @@ export function AccountHeader({
             {/* @ts-expect-error fix me */}
             <FilterButton onApply={onApplyFilter} />
           </View>
-          <View style={{ flex: 1 }} />
 
-          <Search
-            placeholder={t('Search')}
-            value={search}
-            onChange={onSearch}
-            ref={searchInput}
-          />
+          <View style={{ flex: 1, minWidth: 0 }}>
+            <Search
+              placeholder={t('Search')}
+              value={search}
+              onChange={onSearch}
+              ref={searchInput}
+            />
+          </View>
           {workingHard ? (
             <View>
               <AnimatedLoading style={{ width: 16, height: 16 }} />
@@ -398,6 +395,7 @@ export function AccountHeader({
               onDelete={onBatchDelete}
               onEdit={onBatchEdit}
               onRunRules={onRunRules}
+              onCategorizeWithAi={onCategorizeWithAi}
               onLinkSchedule={onBatchLinkSchedule}
               onUnlinkSchedule={onBatchUnlinkSchedule}
               onCreateRule={onCreateRule}
@@ -409,91 +407,41 @@ export function AccountHeader({
               onMergeTransactions={onMergeTransactions}
             />
           )}
-          <View style={{ flex: '0 0 auto' }}>
-            {account && (
-              <Tooltip
+          {/* Reconcile UI is now reachable through the "..." menu — we keep
+              a hidden anchor button so the popover has somewhere to render. */}
+          {account && (
+            <>
+              <Button
+                ref={reconcileRef}
+                variant="bare"
+                aria-hidden
+                tabIndex={-1}
                 style={{
-                  ...styles.tooltip,
-                  marginBottom: 10,
+                  position: 'absolute',
+                  width: 0,
+                  height: 0,
+                  padding: 0,
+                  margin: 0,
+                  opacity: 0,
+                  pointerEvents: 'none',
                 }}
-                content={
-                  account?.last_reconciled
-                    ? t(
-                        'Reconciled {{ relativeTimeAgo }} ({{ absoluteDate }})',
-                        {
-                          relativeTimeAgo: tsToRelativeTime(
-                            account.last_reconciled,
-                            locale,
-                          ),
-                          absoluteDate: formatDate(
-                            new Date(
-                              parseInt(account.last_reconciled ?? '0', 10),
-                            ),
-                            dateFormat,
-                            { locale },
-                          ),
-                        },
-                      )
-                    : t('Not yet reconciled')
-                }
-                placement="top"
-                triggerProps={{
-                  isDisabled: reconcileOpen,
-                }}
+                onPress={() => setReconcileOpen(true)}
+              />
+              <Popover
+                placement="bottom"
+                triggerRef={reconcileRef}
+                style={{ width: 275 }}
+                isOpen={reconcileOpen}
+                onOpenChange={() => setReconcileOpen(false)}
               >
-                <Button
-                  ref={reconcileRef}
-                  variant="bare"
-                  aria-label={t('Reconcile')}
-                  style={{ padding: 6 }}
-                  onPress={() => {
-                    setReconcileOpen(true);
-                  }}
-                >
-                  <View>
-                    <SvgLockClosed width={14} height={14} />
-                  </View>
-                </Button>
-                <Popover
-                  placement="bottom"
-                  triggerRef={reconcileRef}
-                  style={{ width: 275 }}
-                  isOpen={reconcileOpen}
-                  onOpenChange={() => setReconcileOpen(false)}
-                >
-                  <ReconcileMenu
-                    account={account}
-                    onClose={() => setReconcileOpen(false)}
-                    onReconcile={onReconcile}
-                  />
-                </Popover>
-              </Tooltip>
-            )}
-          </View>
-          <Button
-            variant="bare"
-            aria-label={
-              splitsExpanded.state.mode === 'collapse'
-                ? t('Collapse split transactions')
-                : t('Expand split transactions')
-            }
-            style={{ padding: 6 }}
-            onPress={onToggleSplits}
-          >
-            <View
-              title={
-                splitsExpanded.state.mode === 'collapse'
-                  ? t('Collapse split transactions')
-                  : t('Expand split transactions')
-              }
-            >
-              {splitsExpanded.state.mode === 'collapse' ? (
-                <SvgArrowsShrink3 style={{ width: 14, height: 14 }} />
-              ) : (
-                <SvgArrowsExpand3 style={{ width: 14, height: 14 }} />
-              )}
-            </View>
-          </Button>
+                <ReconcileMenu
+                  account={account}
+                  onClose={() => setReconcileOpen(false)}
+                  onReconcile={onReconcile}
+                />
+              </Popover>
+            </>
+          )}
           {account ? (
             <View style={{ flex: '0 0 auto' }}>
               <DialogTrigger>
@@ -519,6 +467,11 @@ export function AccountHeader({
                       showCleared={showCleared}
                       showReconciled={showReconciled}
                       onMenuSelect={onMenuSelect}
+                      onReconcile={() => {
+                        setReconcileOpen(true);
+                      }}
+                      onToggleSplits={onToggleSplits}
+                      splitsMode={splitsExpanded.state.mode}
                     />
                   </Dialog>
                 </Popover>
@@ -755,6 +708,9 @@ type AccountMenuProps = {
       | 'toggle-reconciled'
       | 'toggle-net-worth-chart',
   ) => void;
+  onReconcile?: () => void;
+  onToggleSplits?: () => void;
+  splitsMode?: 'collapse' | 'expand';
 };
 
 function AccountMenu({
@@ -767,6 +723,9 @@ function AccountMenu({
   showReconciled,
   isSorted,
   onMenuSelect,
+  onReconcile,
+  onToggleSplits,
+  splitsMode,
 }: AccountMenuProps) {
   const { t } = useTranslation();
   const syncServerStatus = useSyncServerStatus();
@@ -774,10 +733,33 @@ function AccountMenu({
   return (
     <Menu
       slot="close"
-      onMenuSelect={item => {
-        onMenuSelect(item);
+      onMenuSelect={(item: string) => {
+        if (item === 'reconcile') {
+          onReconcile?.();
+          return;
+        }
+        if (item === 'toggle-splits') {
+          onToggleSplits?.();
+          return;
+        }
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        onMenuSelect(item as any);
       }}
       items={[
+        ...(onToggleSplits
+          ? [
+              {
+                name: 'toggle-splits',
+                text:
+                  splitsMode === 'collapse'
+                    ? t('Collapse split transactions')
+                    : t('Expand split transactions'),
+              } as const,
+            ]
+          : []),
+        ...(onReconcile
+          ? [{ name: 'reconcile', text: t('Reconcile') } as const]
+          : []),
         ...(isSorted
           ? [
               {

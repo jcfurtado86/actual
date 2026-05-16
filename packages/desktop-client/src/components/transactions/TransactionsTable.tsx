@@ -1,5 +1,4 @@
 import {
-  createElement,
   createRef,
   forwardRef,
   memo,
@@ -81,8 +80,6 @@ import { getAccountsById } from '#accounts/accountsSlice';
 import { AccountAutocomplete } from '#components/autocomplete/AccountAutocomplete';
 import { CategoryAutocomplete } from '#components/autocomplete/CategoryAutocomplete';
 import { PayeeAutocomplete } from '#components/autocomplete/PayeeAutocomplete';
-import { getStatusProps } from '#components/schedules/StatusBadge';
-import type { StatusTypes } from '#components/schedules/StatusBadge';
 import { DateSelect } from '#components/select/DateSelect';
 import {
   Cell,
@@ -148,6 +145,10 @@ import type {
 } from './table/utils';
 import { TransactionMenu } from './TransactionMenu';
 
+// Fork: hide Payee column from all transaction tables. Toggle to `true` to
+// restore the upstream behavior.
+const SHOW_PAYEE_COLUMN = false;
+
 type TransactionHeaderProps = {
   hasSelected: boolean;
   showAccount: boolean;
@@ -167,7 +168,7 @@ const TransactionHeader = memo(
     showAccount,
     showCategory,
     showBalance,
-    showCleared,
+    showCleared: _showCleared,
     scrollWidth,
     onSort,
     ascDesc,
@@ -251,20 +252,22 @@ const TransactionHeader = memo(
             }
           />
         )}
-        <HeaderCell
-          value={t('Payee')}
-          width="flex"
-          alignItems="flex"
-          marginLeft={-5}
-          id="payee"
-          icon={field === 'payee' ? ascDesc : 'clickable'}
-          onClick={() =>
-            onSort('payee', selectAscDesc(field, ascDesc, 'payee', 'asc'))
-          }
-        />
+        {SHOW_PAYEE_COLUMN && (
+          <HeaderCell
+            value={t('Payee')}
+            width="flex"
+            alignItems="flex"
+            marginLeft={-5}
+            id="payee"
+            icon={field === 'payee' ? ascDesc : 'clickable'}
+            onClick={() =>
+              onSort('payee', selectAscDesc(field, ascDesc, 'payee', 'asc'))
+            }
+          />
+        )}
         <HeaderCell
           value={t('Notes')}
-          width="flex"
+          width={'flex3' as unknown as number}
           alignItems="flex"
           marginLeft={-5}
           id="notes"
@@ -320,116 +323,13 @@ const TransactionHeader = memo(
             id="balance"
           />
         )}
-        {showCleared && (
-          <HeaderCell
-            value="✓"
-            width={38}
-            alignItems="center"
-            id="cleared"
-            icon={field === 'cleared' ? ascDesc : 'clickable'}
-            onClick={() => {
-              onSort(
-                'cleared',
-                selectAscDesc(field, ascDesc, 'cleared', 'asc'),
-              );
-            }}
-          />
-        )}
+        {/* Cleared column hidden: not used. */}
       </Row>
     );
   },
 );
 
 TransactionHeader.displayName = 'TransactionHeader';
-
-type StatusCellProps = {
-  id: TransactionEntity['id'];
-  status?: StatusTypes | null;
-  focused?: boolean;
-  selected?: boolean;
-  isChild?: boolean;
-  isPreview?: boolean;
-  onEdit: TransactionEditFunction;
-  onUpdate: TransactionUpdateFunction;
-};
-
-function StatusCell({
-  id,
-  focused,
-  selected,
-  status,
-  isChild,
-  isPreview,
-  onEdit,
-  onUpdate,
-}: StatusCellProps) {
-  const isClearedField =
-    status === 'cleared' || status === 'reconciled' || status == null;
-  const statusProps = getStatusProps(status);
-
-  const statusColor =
-    status === 'cleared'
-      ? theme.noticeTextLight
-      : status === 'reconciled'
-        ? theme.noticeTextLight
-        : status === 'missed'
-          ? theme.errorText
-          : status === 'due'
-            ? theme.warningText
-            : selected
-              ? theme.pageTextLinkLight
-              : theme.pageTextSubdued;
-
-  function onSelect() {
-    if (isClearedField) {
-      onUpdate('cleared', !(status === 'cleared'));
-    }
-  }
-
-  return (
-    <Cell
-      name="cleared"
-      width={38}
-      alignItems="center"
-      focused={focused}
-      style={{ padding: 1 }}
-      plain
-    >
-      <CellButton
-        style={{
-          padding: 3,
-          backgroundColor: 'transparent',
-          border: '1px solid transparent',
-          borderRadius: 50,
-          ':focus': {
-            ...(isPreview
-              ? {
-                  boxShadow: 'none',
-                }
-              : {
-                  border: '1px solid ' + theme.formInputBorderSelected,
-                  boxShadow: '0 1px 2px ' + theme.formInputBorderSelected,
-                }),
-          },
-          cursor: isClearedField ? 'pointer' : 'default',
-          ...(isChild && { visibility: 'hidden' }),
-        }}
-        disabled={isPreview || isChild}
-        onEdit={() => onEdit(id, 'cleared')}
-        onSelect={onSelect}
-      >
-        {createElement(statusProps.Icon, {
-          style: {
-            width: 13,
-            height: 13,
-            color: statusColor,
-            marginTop: status === 'due' ? -1 : 0,
-          },
-        })}
-      </CellButton>
-    </Cell>
-  );
-}
 
 type HeaderCellProps = {
   value: string;
@@ -872,6 +772,7 @@ type TransactionProps = {
   onBatchLinkSchedule?: (ids: TransactionEntity['id'][]) => void;
   onBatchUnlinkSchedule?: (ids: TransactionEntity['id'][]) => void;
   onCreateRule?: (ids: TransactionEntity['id'][]) => void;
+  onRefresh?: () => void;
   onScheduleAction?: (
     name: 'skip' | 'post-transaction' | 'post-transaction-today' | 'complete',
     ids: TransactionEntity['id'][],
@@ -911,7 +812,7 @@ const Transaction = memo(function Transaction({
   editing,
   showAccount,
   showBalance,
-  showCleared,
+  showCleared: _showCleared,
   showZeroInDeposit,
   style,
   selected,
@@ -934,6 +835,7 @@ const Transaction = memo(function Transaction({
   onBatchLinkSchedule,
   onBatchUnlinkSchedule,
   onCreateRule,
+  onRefresh,
   onScheduleAction,
   onMakeAsNonSplitTransactions,
   onSplit,
@@ -1148,8 +1050,8 @@ const Transaction = memo(function Transaction({
     date,
     account: accountId,
     category: categoryId,
-    cleared,
-    reconciled,
+    cleared: _cleared,
+    reconciled: _reconciled,
     forceUpcoming,
     is_parent: isParent,
     _unmatched = false,
@@ -1159,6 +1061,41 @@ const Transaction = memo(function Transaction({
   const schedule = transaction.schedule
     ? schedules.find(s => s.id === transaction.schedule)
     : null;
+
+  // Derive whether this row is part of a parcelada (bounded schedule with
+  // a finite end) or a recurring (unbounded). Used to render a small chip
+  // before the notes text.
+  const scheduleType: 'parc' | 'rec' | null = (() => {
+    if (!schedule) {
+      // Even without a schedule link, a transaction whose notes look like
+      // "PARC X/Y" is treated as parcelada for display purposes.
+      // Tightened to avoid matching dates like "22/06".
+      if (notes) {
+        const m = /\b(\d{1,2})\s*\/\s*(\d{1,2})\b/.exec(notes);
+        if (m) {
+          const x = Number(m[1]);
+          const y = Number(m[2]);
+          if (
+            Number.isFinite(x) &&
+            Number.isFinite(y) &&
+            x >= 1 &&
+            y >= 2 &&
+            y <= 24 &&
+            x <= y &&
+            (y > 12 || /\bparc/i.test(notes))
+          ) {
+            return 'parc';
+          }
+        }
+      }
+      return null;
+    }
+    const cfg = (schedule as { _date?: { endMode?: string } })._date;
+    if (cfg?.endMode === 'after_n_occurrences' || cfg?.endMode === 'on_date') {
+      return 'parc';
+    }
+    return 'rec';
+  })();
 
   const previewStatus = forceUpcoming ? 'upcoming' : categoryId;
 
@@ -1374,6 +1311,7 @@ const Transaction = memo(function Transaction({
             onMakeAsNonSplitTransactions={ids =>
               onMakeAsNonSplitTransactions?.(ids)
             }
+            onRefresh={onRefresh}
             closeMenu={() => setMenuOpen(false)}
           />
         </Popover>
@@ -1547,7 +1485,7 @@ const Transaction = memo(function Transaction({
             )}
           </CustomCell>
         )}
-        {(() => (
+        {SHOW_PAYEE_COLUMN && (
           <PayeeCell
             /* Payee field for all transactions */
             id={id}
@@ -1571,19 +1509,62 @@ const Transaction = memo(function Transaction({
             onNavigateToTransferAccount={onNavigateToTransferAccount}
             onNavigateToSchedule={onNavigateToSchedule}
           />
-        ))()}
+        )}
 
         <InputCell
-          width="flex"
+          width={'flex3' as unknown as number}
           name="notes"
           textAlign="flex"
           exposed={focusedField === 'notes'}
           focused={focusedField === 'notes'}
           value={notes ?? (isPreview ? schedule?.name : null) ?? ''}
           valueStyle={valueStyle}
-          formatter={value =>
-            NotesTagFormatter({ notes: value, onNotesTagClick })
-          }
+          formatter={value => (
+            <View
+              style={{
+                flexDirection: 'row',
+                alignItems: 'center',
+                gap: 4,
+                minWidth: 0,
+              }}
+            >
+              {scheduleType === 'parc' && (
+                <Text
+                  style={{
+                    fontSize: 9,
+                    fontWeight: 700,
+                    padding: '1px 5px',
+                    borderRadius: 3,
+                    backgroundColor: '#7c3aed',
+                    color: 'white',
+                    flexShrink: 0,
+                    letterSpacing: 0.4,
+                  }}
+                >
+                  PARC
+                </Text>
+              )}
+              {scheduleType === 'rec' && (
+                <Text
+                  style={{
+                    fontSize: 9,
+                    fontWeight: 700,
+                    padding: '1px 5px',
+                    borderRadius: 3,
+                    backgroundColor: '#0ea5e9',
+                    color: 'white',
+                    flexShrink: 0,
+                    letterSpacing: 0.4,
+                  }}
+                >
+                  REC
+                </Text>
+              )}
+              <View style={{ flex: 1, minWidth: 0 }}>
+                {NotesTagFormatter({ notes: value, onNotesTagClick })}
+              </View>
+            </View>
+          )}
           onExpose={name => !isPreview && onEdit(id, name)}
           inputProps={{
             value: notes || '',
@@ -1865,27 +1846,7 @@ const Transaction = memo(function Transaction({
           />
         )}
 
-        {showCleared && (
-          <StatusCell
-            /* Icon field for all transactions */
-            id={id}
-            focused={focusedField === 'cleared'}
-            selected={selected}
-            isPreview={isPreview}
-            status={
-              isPreview
-                ? (previewStatus as StatusTypes)
-                : reconciled
-                  ? 'reconciled'
-                  : cleared
-                    ? 'cleared'
-                    : null
-            }
-            isChild={isChild}
-            onEdit={onEdit}
-            onUpdate={onUpdate}
-          />
-        )}
+        {/* Cleared cell hidden along with the header. */}
 
         <Cell width={5} />
       </Row>
@@ -2257,6 +2218,7 @@ type TransactionTableInnerProps = {
     ids: TransactionEntity['id'][],
   ) => void;
   onMakeAsNonSplitTransactions: (ids: TransactionEntity['id'][]) => void;
+  onRefresh?: () => void;
   showSelection: boolean;
   allowSplitTransaction?: boolean;
 
@@ -2460,6 +2422,7 @@ function TransactionTableInner({
         onCreateRule={props.onCreateRule}
         onScheduleAction={props.onScheduleAction}
         onMakeAsNonSplitTransactions={props.onMakeAsNonSplitTransactions}
+        onRefresh={props.onRefresh}
         onSplit={props.onSplit}
         onManagePayees={props.onManagePayees}
         onCreatePayee={props.onCreatePayee}
@@ -2661,6 +2624,7 @@ export type TransactionTableProps = {
     ids: TransactionEntity['id'][],
   ) => void;
   onMakeAsNonSplitTransactions: (ids: string[]) => void;
+  onRefresh?: () => void;
   showSelection: boolean;
   allowSplitTransaction?: boolean;
   onManagePayees: (id?: PayeeEntity['id']) => void;

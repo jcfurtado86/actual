@@ -675,6 +675,63 @@ export function useSyncAccountsMutation() {
       // Reset the sync state back to empty (fallback in case something breaks
       // in the logic above)
       dispatch(setAccountsSyncing({ ids: [] }));
+
+      // Fire-and-forget AI auto-categorize on the newly imported transactions.
+      // Honors the `aiAutoCategorize` synced pref (default on); handler returns
+      // immediately if disabled.
+      if (newTransactions.length > 0) {
+        void (async () => {
+          try {
+            const res = (await send('ai-auto-categorize-after-sync', {
+              ids: newTransactions,
+            })) as
+              | { skipped: 'pref-off' | 'no-ids' }
+              | { updated: number; skipped: number }
+              | { error: string };
+            if ('updated' in res && res.updated > 0) {
+              dispatch(
+                addNotification({
+                  notification: {
+                    type: 'message',
+                    message: `IA categorizou ${res.updated} transação(ões) recém-importada(s).`,
+                  },
+                }),
+              );
+            }
+          } catch (err) {
+            console.warn('AI auto-categorize failed:', err);
+          }
+        })();
+
+        // Also auto-detect parceladas on the new transactions. Recurring is
+        // skipped here (needs broader history; the manual button handles it).
+        void (async () => {
+          try {
+            const res = (await send('ai-detect-and-create-schedules', {
+              ids: newTransactions,
+              skipRecurring: true,
+            })) as
+              | {
+                  parceladas: { detected: number; created: number };
+                  recurring: { detected: number; created: number };
+                }
+              | { error: string };
+            if ('parceladas' in res && res.parceladas.created > 0) {
+              dispatch(
+                addNotification({
+                  notification: {
+                    type: 'message',
+                    message: `IA criou ${res.parceladas.created} schedule(s) de parceladas.`,
+                  },
+                }),
+              );
+            }
+          } catch (err) {
+            console.warn('AI auto-detect schedules failed:', err);
+          }
+        })();
+      }
+
       return isSyncSuccess;
     },
     onSuccess: () => invalidateQueries(queryClient),

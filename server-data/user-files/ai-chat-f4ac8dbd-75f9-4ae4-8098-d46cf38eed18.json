@@ -1,0 +1,19 @@
+{
+  "messages": [
+    {
+      "role": "user",
+      "content": "Onde gastei mais este mês?",
+      "timestamp": "2026-05-15T22:09:00.776Z"
+    },
+    {
+      "role": "assistant",
+      "content": "Olá! Com base nos seus gastos até 15 de maio de 2026, observei que a maior parte do seu dinheiro este mês ainda está sem categoria.\n\n<h3>Seus maiores gastos em maio de 2026:</h3>\n<ul>\n    <li>\n        <strong>Transações sem categoria: R$ 8.575,02</strong>\n        <p>Este é o maior valor de gasto do mês. Recomendo fortemente que você categorize essas transações para ter uma visão mais clara de onde seu dinheiro está indo. Isso te ajudará muito a identificar padrões e a fazer ajustes no seu orçamento.</p>\n    </li>\n    <li>\n        <strong>Bills (Contas Fixas): R$ 4.496,92</strong>\n        <p>Você gastou uma quantia significativa com contas, incluindo pagamentos para Banco do Brasil, Santander, Vivo e TIM.</p>\n    </li>\n    <li>\n        <strong>Online Shopping: R$ 703,56</strong>\n        <p>As compras online, principalmente na Amazon, representam uma parte considerável dos seus gastos categorizados.</p>\n    </li>\n    <li>\n        <strong>Sports: R$ 399,99</strong>\n        <p>Houve um gasto notável com produtos esportivos na SBF Comércio.</p>\n    </li>\n</ul>\n\nOrganizar as transações \"sem categoria\" é o próximo passo crucial para você ter total controle do seu orçamento! Se precisar de ajuda para entender como categorizá-las, me diga.",
+      "timestamp": "2026-05-15T22:09:25.995Z",
+      "model": "gemini-2.5-flash",
+      "tokens": {
+        "input": 21520,
+        "output": 330
+      }
+    }
+  ]
+}

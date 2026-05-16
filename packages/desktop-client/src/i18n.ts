@@ -24,7 +24,7 @@ void i18n
   .use(initReactI18next)
   .use(resourcesToBackend(loadLanguage))
   .init({
-    lng: 'en',
+    lng: 'pt-BR',
 
     // allow keys to be phrases having `:`, `.`
     nsSeparator: false,
@@ -76,13 +76,13 @@ export const setI18NextLanguage = (language: string | null) => {
   }
 
   if (!resolved) {
-    // Fall back to English
+    // Fall back to pt-BR (this fork is localized for Brazil)
     console.info(
       language
-        ? `Unknown locale ${language}, falling back to en`
-        : `Unknown locales [${languagesToTry.join(', ')}] falling back to en`,
+        ? `Unknown locale ${language}, falling back to pt-BR`
+        : `Unknown locales [${languagesToTry.join(', ')}] falling back to pt-BR`,
     );
-    resolved = 'en';
+    resolved = 'pt-BR';
   }
 
   if (resolved === i18n.language) {
